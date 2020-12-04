@@ -1037,8 +1037,9 @@ arr = input.split("\n\n")
 count = 0
 req_count = 0
 
-items_known    = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"]
-items_optional = ["cid"]
+items_known_minmax = {"byr" : [1920, 2002], "iyr" : [2010, 2020], "eyr" : [2020, 2030]}
+items_known_regexp = {"hgt" : r"^1[5-8]{1}[0-9]{1}cm|19[0-3]{1}cm|59in|[67]{1}[0-9]{1}in|7[0-6]{1}in$", "hcl" : r"^#[0-9a-f]{6}$", "ecl" : r"^amb|blu|brn|gry|grn|hzl|oth$", "pid" : r"^[0-9]{9}$"}
+items_optional     = {"cid" : ""}
 
 for a in arr:
     line = a.replace("\n", " ")
@@ -1047,10 +1048,21 @@ for a in arr:
     
     for item in data:
         elem = item.split(":")
-        if elem[0] in items_known:
-            req_count = req_count + 1
-            
-    if req_count == len(items_known):
+        if items_known_minmax.get(elem[0]):
+            check = items_known_minmax[elem[0]]
+            if int(elem[1]) >= check[0] and int(elem[1]) <= check[1]:
+                req_count = req_count + 1
+            #else:
+            #    print("not matching", elem[0], "|", elem[1], ">> ",  check[0], "-", check[1])
+
+        if items_known_regexp.get(elem[0]):
+            check = items_known_regexp[elem[0]]
+            if re.match(check, elem[1]) is not None:
+                req_count = req_count + 1
+            #else:
+                #print("not matching", elem[0], "|", elem[1], ">>", check)
+
+    if req_count == (len(items_known_minmax) + len(items_known_regexp)):
         count = count + 1
 
 print("valid passports: " + str(count))
